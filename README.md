@@ -1,5 +1,7 @@
 # magnetism-analysis
 
+[![CI](https://img.shields.io/github/actions/workflow/status/chatmaterials/magnetism-analysis/ci.yml?branch=main&label=CI)](https://github.com/chatmaterials/magnetism-analysis/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/chatmaterials/magnetism-analysis?display_name=tag)](https://github.com/chatmaterials/magnetism-analysis/releases)
+
 Standalone skill for magnetism-focused DFT result analysis.
 
 ## Install
