@@ -1,0 +1,9 @@
+ free  energy   TOTEN  =      -20.000000 eV
+ magnetization (x)
+ # of ion       s       p       d      tot
+ -----------------------------------------
+     1      0.05    0.00    0.35    0.40
+     2     -0.05    0.00   -0.35   -0.40
+ -----------------------------------------
+ number of electron     16.0000 magnetization      0.0000
+ General timing and accounting informations for this job

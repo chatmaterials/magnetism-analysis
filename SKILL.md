@@ -1,6 +1,6 @@
 ---
 name: "magnetism-analysis"
-description: "Use when the task is to analyze magnetic DFT results, including total and local magnetic moments, comparing ferromagnetic and antiferromagnetic states, ranking magnetic configurations by energy, and writing compact markdown reports from finished calculations. Supports VASP and QE-style outputs."
+description: "Use when the task is to analyze magnetic DFT results, including total and local magnetic moments, magnetic-state classification, comparing ferromagnetic and antiferromagnetic states, ranking magnetic configurations or candidates, and writing compact markdown reports from finished calculations. Supports VASP and QE-style outputs."
 ---
 
 # Magnetism Analysis
@@ -10,8 +10,10 @@ Use this skill for magnetism-focused post-processing rather than generic workflo
 ## When to use
 
 - extract total or local magnetic moments from finished calculations
+- classify magnetic states as nonmagnetic-, ferro-, ferri-, or antiferromagnetic-like
 - compare FM and AFM states by energy
 - summarize magnetic-state ordering or energy splitting
+- rank multiple magnetic candidates with a compact ground-state screening heuristic
 - write a compact magnetism-analysis report from finished calculations
 
 Supported backends:
@@ -25,6 +27,8 @@ Supported backends:
   Summarize a single magnetic-state calculation.
 - `scripts/compare_magnetic_states.py`
   Compare multiple magnetic-state calculations by energy and total moment.
+- `scripts/screen_magnetic_candidates.py`
+  Rank multiple magnetic candidates by ground-state character, moment size, and magnetic energy splitting.
 - `scripts/export_magnetism_report.py`
   Export a markdown magnetism-analysis report.
 

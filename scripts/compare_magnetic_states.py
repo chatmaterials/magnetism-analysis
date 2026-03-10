@@ -17,7 +17,18 @@ def compare(paths: list[Path]) -> dict[str, object]:
         energy = record["final_energy_eV"]
         record["relative_energy_meV"] = (energy - reference) * 1000.0 if energy is not None and reference is not None else None
     records.sort(key=lambda item: (item["final_energy_eV"] is None, item["final_energy_eV"]))
-    return {"reference_energy_eV": reference, "results": records}
+    lowest = records[0] if records else None
+    second = records[1] if len(records) > 1 else None
+    gap = None
+    if lowest is not None and second is not None and lowest["relative_energy_meV"] is not None and second["relative_energy_meV"] is not None:
+        gap = second["relative_energy_meV"] - lowest["relative_energy_meV"]
+    return {
+        "reference_energy_eV": reference,
+        "ground_state_path": lowest["path"] if lowest is not None else None,
+        "ground_state_character": lowest["magnetic_character"] if lowest is not None else None,
+        "energy_window_meV": gap,
+        "results": records,
+    }
 
 
 def main() -> None:

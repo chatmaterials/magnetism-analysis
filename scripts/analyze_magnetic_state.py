@@ -11,7 +11,10 @@ from magnetism_io import analyze_state
 
 def analyze_path(path: Path) -> dict[str, object]:
     payload = analyze_state(Path(path).expanduser().resolve())
-    payload["observations"] = [f"Magnetic-state summary extracted from {payload['backend']}-style data."]
+    payload["observations"] = [
+        f"Magnetic-state summary extracted from {payload['backend']}-style data.",
+        f"Magnetic character was classified as `{payload['magnetic_character']}`.",
+    ]
     return payload
 
 

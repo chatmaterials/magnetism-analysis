@@ -23,6 +23,42 @@ def detect_backend(path: Path) -> str:
     raise SystemExit(f"Could not detect magnetic backend from {path}")
 
 
+def classify_magnetism(total_moment: float | None, local_moments: list[dict[str, float]]) -> tuple[str, dict[str, float | None]]:
+    total = float(total_moment) if total_moment is not None else 0.0
+    moments = [float(entry["moment"]) for entry in local_moments]
+    active = [moment for moment in moments if abs(moment) >= 0.1]
+    max_local = max((abs(moment) for moment in moments), default=None)
+    spread = (max(moments) - min(moments)) if moments else None
+    sum_abs = sum(abs(moment) for moment in moments) if moments else None
+    compensation = abs(total) / sum_abs if sum_abs and sum_abs > 1e-14 else None
+
+    if not active:
+        if abs(total) < 0.1:
+            return "nonmagnetic-like", {
+                "max_local_moment_muB": max_local,
+                "local_moment_spread_muB": spread,
+                "moment_compensation_ratio": compensation,
+            }
+        return "polarized-like", {
+            "max_local_moment_muB": max_local,
+            "local_moment_spread_muB": spread,
+            "moment_compensation_ratio": compensation,
+        }
+
+    signs = {1 if moment > 0 else -1 for moment in active}
+    if len(signs) == 1:
+        label = "ferromagnetic-like" if abs(total) >= 0.1 else "collinear-polarized-like"
+    elif abs(total) < 0.1:
+        label = "antiferromagnetic-like"
+    else:
+        label = "ferrimagnetic-like"
+    return label, {
+        "max_local_moment_muB": max_local,
+        "local_moment_spread_muB": spread,
+        "moment_compensation_ratio": compensation,
+    }
+
+
 def analyze_state(path: Path) -> dict[str, object]:
     backend = detect_backend(path)
     root = path if path.is_dir() else path.parent
@@ -47,12 +83,15 @@ def analyze_state(path: Path) -> dict[str, object]:
                         continue
                     local_moments.append({"ion": int(parts[0]), "moment": float(parts[4])})
                 break
+        magnetic_character, descriptors = classify_magnetism(total_moment, local_moments)
         return {
             "backend": backend,
             "path": str(path),
             "final_energy_eV": float(energy_match[-1]) if energy_match else None,
             "total_moment_muB": total_moment,
             "local_moments": local_moments,
+            "magnetic_character": magnetic_character,
+            **descriptors,
         }
     out_files = sorted(root.glob("*.out"))
     if not out_files:
@@ -60,10 +99,14 @@ def analyze_state(path: Path) -> dict[str, object]:
     text = read_text(out_files[0])
     energy_match = re.findall(r"!\s+total energy\s+=\s+([\-0-9.DdEe+]+)\s+Ry", text)
     total_match = re.search(r"total magnetization\s*=\s*([\-0-9.Ee+]+)", text, re.IGNORECASE)
+    total_moment = float(total_match.group(1)) if total_match else None
+    magnetic_character, descriptors = classify_magnetism(total_moment, [])
     return {
         "backend": backend,
         "path": str(path),
         "final_energy_eV": float(energy_match[-1].replace("D", "e").replace("d", "e")) * RY_TO_EV if energy_match else None,
-        "total_moment_muB": float(total_match.group(1)) if total_match else None,
+        "total_moment_muB": total_moment,
         "local_moments": [],
+        "magnetic_character": magnetic_character,
+        **descriptors,
     }
