@@ -1,0 +1,20 @@
+# magnetism-analysis
+
+Standalone skill for magnetism-focused DFT result analysis.
+
+## Install
+
+```bash
+npx skills add chatmaterials/magnetism-analysis -g -y
+```
+
+## Local Validation
+
+```bash
+python3 -m py_compile scripts/*.py
+npx skills add . --list
+python3 scripts/analyze_magnetic_state.py fixtures/fm --json
+python3 scripts/compare_magnetic_states.py fixtures/compare/fm fixtures/compare/afm --json
+python3 scripts/export_magnetism_report.py fixtures/compare/fm fixtures/compare/afm
+python3 scripts/run_regression.py
+```

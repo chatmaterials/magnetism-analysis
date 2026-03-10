@@ -1,0 +1,5 @@
+interface:
+  display_name: "Magnetism Analysis"
+  short_description: "Analyze magnetic states and moment data"
+  brand_color: "#991B1B"
+  default_prompt: "Use $magnetism-analysis to analyze magnetic moments or compare magnetic configurations from DFT results."
