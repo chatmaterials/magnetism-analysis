@@ -29,9 +29,13 @@ def ensure(condition: bool, message: str) -> None:
 def main() -> None:
     fm = run_json("scripts/analyze_magnetic_state.py", "fixtures/fm", "--json")
     ensure(abs(fm["total_moment_muB"] - 2.4) < 1e-6, "FM fixture should parse the total moment")
+    qe_fm = run_json("scripts/analyze_magnetic_state.py", "fixtures/qe/fm", "--json")
+    ensure(abs(qe_fm["total_moment_muB"] - 2.4) < 1e-6, "QE FM fixture should parse the total moment")
     compare = run_json("scripts/compare_magnetic_states.py", "fixtures/compare/fm", "fixtures/compare/afm", "--json")
     ensure(compare["results"][0]["path"].endswith("fm"), "FM should be lower in energy than AFM in the fixture")
     ensure(compare["results"][1]["relative_energy_meV"] > 0, "AFM should have positive relative energy")
+    qe_compare = run_json("scripts/compare_magnetic_states.py", "fixtures/qe/compare/fm", "fixtures/qe/compare/afm", "--json")
+    ensure(qe_compare["results"][0]["path"].endswith("fm"), "QE FM should be lower in energy than QE AFM in the fixture")
     temp_dir = Path(tempfile.mkdtemp(prefix="magnetism-analysis-report-"))
     try:
         report_path = Path(run("scripts/export_magnetism_report.py", "fixtures/compare/fm", "fixtures/compare/afm", "--output", str(temp_dir / "MAGNETISM_REPORT.md")).stdout.strip())

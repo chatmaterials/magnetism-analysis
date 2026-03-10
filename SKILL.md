@@ -1,6 +1,6 @@
 ---
 name: "magnetism-analysis"
-description: "Use when the task is to analyze magnetic DFT results, including total and local magnetic moments, comparing ferromagnetic and antiferromagnetic states, ranking magnetic configurations by energy, and writing compact markdown reports from finished calculations."
+description: "Use when the task is to analyze magnetic DFT results, including total and local magnetic moments, comparing ferromagnetic and antiferromagnetic states, ranking magnetic configurations by energy, and writing compact markdown reports from finished calculations. Supports VASP and QE-style outputs."
 ---
 
 # Magnetism Analysis
@@ -13,6 +13,11 @@ Use this skill for magnetism-focused post-processing rather than generic workflo
 - compare FM and AFM states by energy
 - summarize magnetic-state ordering or energy splitting
 - write a compact magnetism-analysis report from finished calculations
+
+Supported backends:
+
+- VASP-like `OUTCAR`
+- QE-like `pw.x` `.out` files with total magnetization
 
 ## Use the bundled helpers
 
