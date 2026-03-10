@@ -22,11 +22,23 @@ def compare(paths: list[Path]) -> dict[str, object]:
     gap = None
     if lowest is not None and second is not None and lowest["relative_energy_meV"] is not None and second["relative_energy_meV"] is not None:
         gap = second["relative_energy_meV"] - lowest["relative_energy_meV"]
+    active_sites = max((int(record.get("active_local_moment_count") or 0) for record in records), default=0)
+    exchange_proxy = gap / active_sites if gap is not None and active_sites > 0 else gap
+    if gap is None:
+        robustness = None
+    elif gap < 5.0:
+        robustness = "near-degenerate"
+    elif gap < 25.0:
+        robustness = "moderately-robust"
+    else:
+        robustness = "robust"
     return {
         "reference_energy_eV": reference,
         "ground_state_path": lowest["path"] if lowest is not None else None,
         "ground_state_character": lowest["magnetic_character"] if lowest is not None else None,
         "energy_window_meV": gap,
+        "exchange_proxy_meV_per_active_site": exchange_proxy,
+        "robustness_class": robustness,
         "results": records,
     }
 

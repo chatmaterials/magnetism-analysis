@@ -31,6 +31,8 @@ def classify_magnetism(total_moment: float | None, local_moments: list[dict[str,
     spread = (max(moments) - min(moments)) if moments else None
     sum_abs = sum(abs(moment) for moment in moments) if moments else None
     compensation = abs(total) / sum_abs if sum_abs and sum_abs > 1e-14 else None
+    rms = (sum(moment * moment for moment in moments) / len(moments)) ** 0.5 if moments else None
+    net_to_local = total / sum_abs if sum_abs and sum_abs > 1e-14 else None
 
     if not active:
         if abs(total) < 0.1:
@@ -38,11 +40,17 @@ def classify_magnetism(total_moment: float | None, local_moments: list[dict[str,
                 "max_local_moment_muB": max_local,
                 "local_moment_spread_muB": spread,
                 "moment_compensation_ratio": compensation,
+                "local_moment_rms_muB": rms,
+                "net_to_local_ratio": net_to_local,
+                "active_local_moment_count": 0,
             }
         return "polarized-like", {
             "max_local_moment_muB": max_local,
             "local_moment_spread_muB": spread,
             "moment_compensation_ratio": compensation,
+            "local_moment_rms_muB": rms,
+            "net_to_local_ratio": net_to_local,
+            "active_local_moment_count": 0,
         }
 
     signs = {1 if moment > 0 else -1 for moment in active}
@@ -56,6 +64,9 @@ def classify_magnetism(total_moment: float | None, local_moments: list[dict[str,
         "max_local_moment_muB": max_local,
         "local_moment_spread_muB": spread,
         "moment_compensation_ratio": compensation,
+        "local_moment_rms_muB": rms,
+        "net_to_local_ratio": net_to_local,
+        "active_local_moment_count": len(active),
     }
 
 

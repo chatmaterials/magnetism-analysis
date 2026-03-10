@@ -23,7 +23,11 @@ def analyze_candidate(root: Path, target_ground_state: str, target_moment_min: f
     moment_penalty = max(0.0, target_moment_min - moment)
     split = float(compared["energy_window_meV"]) if compared["energy_window_meV"] is not None else 0.0
     robustness_penalty = max(0.0, 10.0 - split)
-    score = ordering_penalty + moment_penalty + robustness_penalty
+    compensation = ground.get("moment_compensation_ratio")
+    compensation_penalty = 0.0
+    if target_ground_state == "ferromagnetic-like" and compensation is not None:
+        compensation_penalty = max(0.0, 0.7 - float(compensation)) * 10.0
+    score = ordering_penalty + moment_penalty + robustness_penalty + compensation_penalty
     return {
         "case": root.name,
         "path": str(root),
@@ -31,9 +35,12 @@ def analyze_candidate(root: Path, target_ground_state: str, target_moment_min: f
         "ground_state_path": ground["path"],
         "ground_state_total_moment_muB": ground["total_moment_muB"],
         "energy_window_meV": compared["energy_window_meV"],
+        "exchange_proxy_meV_per_active_site": compared["exchange_proxy_meV_per_active_site"],
+        "robustness_class": compared["robustness_class"],
         "ordering_penalty": ordering_penalty,
         "moment_penalty": moment_penalty,
         "robustness_penalty": robustness_penalty,
+        "compensation_penalty": compensation_penalty,
         "screening_score": score,
     }
 
@@ -44,7 +51,7 @@ def analyze_candidates(roots: list[Path], target_ground_state: str, target_momen
     return {
         "target_ground_state": target_ground_state,
         "target_moment_min_muB": target_moment_min,
-        "ranking_basis": "screening_score = ordering_penalty + moment_penalty + robustness_penalty",
+        "ranking_basis": "screening_score = ordering_penalty + moment_penalty + robustness_penalty + compensation_penalty",
         "cases": ranked,
         "best_case": ranked[0]["case"] if ranked else None,
         "observations": [

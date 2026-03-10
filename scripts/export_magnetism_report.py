@@ -17,6 +17,9 @@ def screening_note(payload: dict[str, object]) -> str:
         return f"The lowest-energy state looks `{ground_state}`, but there is no second state to assess energetic robustness."
     if float(window) < 5.0:
         return f"The lowest-energy state looks `{ground_state}`, but the magnetic energy splitting is small enough that competing orderings may remain close."
+    exchange_proxy = payload.get("exchange_proxy_meV_per_active_site")
+    if exchange_proxy is not None:
+        return f"The lowest-energy state looks `{ground_state}` with a `{payload.get('robustness_class')}` magnetic splitting of about `{float(window):.2f}` meV, or `{float(exchange_proxy):.2f}` meV per active local moment."
     return f"The lowest-energy state looks `{ground_state}` with a magnetic splitting of about `{float(window):.2f}` meV to the next state."
 
 
@@ -31,6 +34,7 @@ def render_markdown(payload: dict[str, object]) -> str:
                 f"- Total moment (muB): `{record['total_moment_muB']:.4f}`" if record["total_moment_muB"] is not None else "- Total moment (muB): `unknown`",
                 f"- Magnetic character: `{record['magnetic_character']}`",
                 f"- Max local moment (muB): `{record['max_local_moment_muB']:.4f}`" if record["max_local_moment_muB"] is not None else "- Max local moment (muB): `n/a`",
+                f"- Local moment RMS (muB): `{record['local_moment_rms_muB']:.4f}`" if record["local_moment_rms_muB"] is not None else "- Local moment RMS (muB): `n/a`",
                 "",
             ]
         )
