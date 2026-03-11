@@ -9,7 +9,7 @@ from pathlib import Path
 from compare_magnetic_states import compare
 
 
-def analyze_candidate(root: Path, target_ground_state: str, target_moment_min: float) -> dict[str, object]:
+def analyze_candidate(root: Path, target_ground_state: str, target_moment_min: float, mode: str) -> dict[str, object]:
     states = sorted(path for path in root.iterdir() if path.is_dir())
     if not states:
         raise SystemExit(f"No magnetic states found in {root}")
@@ -27,7 +27,14 @@ def analyze_candidate(root: Path, target_ground_state: str, target_moment_min: f
     compensation_penalty = 0.0
     if target_ground_state == "ferromagnetic-like" and compensation is not None:
         compensation_penalty = max(0.0, 0.7 - float(compensation)) * 10.0
-    score = ordering_penalty + moment_penalty + robustness_penalty + compensation_penalty
+    local_moment_penalty = max(0.0, target_moment_min - float(ground.get("max_local_moment_muB") or 0.0))
+    compensated_penalty = abs(float(ground["total_moment_muB"])) if ground["total_moment_muB"] is not None else 0.0
+    if mode == "compensated":
+        score = 2.0 * ordering_penalty + 0.5 * moment_penalty + robustness_penalty + 5.0 * compensated_penalty
+    elif mode == "local-moment":
+        score = 0.5 * ordering_penalty + local_moment_penalty + 0.5 * robustness_penalty
+    else:
+        score = ordering_penalty + moment_penalty + robustness_penalty + compensation_penalty
     return {
         "case": root.name,
         "path": str(root),
@@ -41,17 +48,20 @@ def analyze_candidate(root: Path, target_ground_state: str, target_moment_min: f
         "moment_penalty": moment_penalty,
         "robustness_penalty": robustness_penalty,
         "compensation_penalty": compensation_penalty,
+        "local_moment_penalty": local_moment_penalty,
+        "mode": mode,
         "screening_score": score,
     }
 
 
-def analyze_candidates(roots: list[Path], target_ground_state: str, target_moment_min: float) -> dict[str, object]:
-    cases = [analyze_candidate(root, target_ground_state, target_moment_min) for root in roots]
+def analyze_candidates(roots: list[Path], target_ground_state: str, target_moment_min: float, mode: str) -> dict[str, object]:
+    cases = [analyze_candidate(root, target_ground_state, target_moment_min, mode) for root in roots]
     ranked = sorted(cases, key=lambda item: item["screening_score"])
     return {
         "target_ground_state": target_ground_state,
         "target_moment_min_muB": target_moment_min,
-        "ranking_basis": "screening_score = ordering_penalty + moment_penalty + robustness_penalty + compensation_penalty",
+        "mode": mode,
+        "ranking_basis": "screening_score = weighted(ordering_penalty, moment_penalty, robustness_penalty, compensation_penalty, local_moment_penalty)",
         "cases": ranked,
         "best_case": ranked[0]["case"] if ranked else None,
         "observations": [
@@ -65,12 +75,14 @@ def main() -> None:
     parser.add_argument("paths", nargs="+")
     parser.add_argument("--target-ground-state", choices=["ferromagnetic-like", "antiferromagnetic-like", "ferrimagnetic-like", "any"], default="ferromagnetic-like")
     parser.add_argument("--target-moment-min", type=float, default=1.0)
+    parser.add_argument("--mode", choices=["ordered", "compensated", "local-moment"], default="ordered")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     payload = analyze_candidates(
         [Path(path).expanduser().resolve() for path in args.paths],
         args.target_ground_state,
         args.target_moment_min,
+        args.mode,
     )
     if args.json:
         print(json.dumps(payload, indent=2))

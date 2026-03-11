@@ -52,9 +52,38 @@ def main() -> None:
         "ferromagnetic-like",
         "--target-moment-min",
         "1.5",
+        "--mode",
+        "ordered",
         "--json",
     )
     ensure(screened["best_case"] == "compare", "magnetism-analysis should rank the robust FM candidate ahead of the weak candidate")
+    compensated = run_json(
+        "scripts/screen_magnetic_candidates.py",
+        "fixtures/compare",
+        "fixtures/candidates/compensated-robust",
+        "fixtures/candidates/ferri-mixed",
+        "--target-ground-state",
+        "antiferromagnetic-like",
+        "--target-moment-min",
+        "1.0",
+        "--mode",
+        "compensated",
+        "--json",
+    )
+    ensure(compensated["best_case"] == "compensated-robust", "magnetism-analysis should rank the compensated AFM candidate first in compensated mode")
+    local_moment = run_json(
+        "scripts/screen_magnetic_candidates.py",
+        "fixtures/candidates/weak-fm",
+        "fixtures/candidates/ferri-mixed",
+        "--target-ground-state",
+        "any",
+        "--target-moment-min",
+        "1.0",
+        "--mode",
+        "local-moment",
+        "--json",
+    )
+    ensure(local_moment["best_case"] == "ferri-mixed", "magnetism-analysis should rank the larger local-moment candidate first in local-moment mode")
     temp_dir = Path(tempfile.mkdtemp(prefix="magnetism-analysis-report-"))
     try:
         report_path = Path(run("scripts/export_magnetism_report.py", "fixtures/compare/fm", "fixtures/compare/afm", "--output", str(temp_dir / "MAGNETISM_REPORT.md")).stdout.strip())
